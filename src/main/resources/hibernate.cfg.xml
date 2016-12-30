@@ -1,0 +1,44 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQL82Dialect</property>
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.username">postgres</property>
+        <property name="hibernate.connection.password">Zim-Beri1</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/dockolution</property>
+        <property name="connection_pool_size">10</property>
+
+        <property name="hbm2ddl.auto">update</property>
+        <property name="show_sql">false</property>
+
+        <mapping class="models.SQL.Snapshot"/>
+        <mapping class="models.SQL.Diff"/>
+        <mapping class="models.SQL.Dockerfile"/>
+        <mapping class="models.diff.DiffType"/>
+
+        <mapping class="models.commands.Add"/>
+        <mapping class="models.commands.Cmd"/>
+        <mapping class="models.commands.Run"/>
+        <mapping class="models.commands.Copy"/>
+        <mapping class="models.commands.Arg"/>
+        <mapping class="models.commands.EntryPoint"/>
+        <mapping class="models.commands.Env"/>
+        <mapping class="models.commands.User"/>
+        <mapping class="models.commands.Comment"/>
+        <mapping class="models.commands.Healthcheck"/>
+        <mapping class="models.commands.StopSignal"/>
+        <mapping class="models.commands.Expose"/>
+        <mapping class="models.commands.OnBuild"/>
+        <mapping class="models.commands.From"/>
+        <mapping class="models.commands.WorkDir"/>
+        <mapping class="models.commands.Volume"/>
+        <mapping class="models.commands.Label"/>
+        <mapping class="models.commands.Comment"/>
+        <mapping class="models.commands.Maintainer"/>
+        <mapping class="models.commands.Instruction"/>
+        <mapping class="models.ChangedFile"/>
+    </session-factory>
+</hibernate-configuration>
