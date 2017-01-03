@@ -571,11 +571,12 @@ public class DockerParser {
     }
 
     private Instruction parseRunInstruction(String commandx) {
+
         String command = commandx;
-        if(commandx.contains("(")){
+        if (commandx.contains("(") && !commandx.contains("echo ")) {
             Matcher m = Pattern.compile("\\(([^)]+)\\)").matcher(commandx);
-            while(m.find()) {
-                command  =m.group(1);
+            while (m.find()) {
+                command = m.group(1);
             }
         }
 
@@ -585,34 +586,43 @@ public class DockerParser {
             String executable = "";
             List<String> params = new ArrayList<>();
 
-            if (command.contains("[")) {
-                Pattern p = Pattern.compile("\"(.*?)\"");
-                Matcher m = p.matcher(command);
-
-                List<String> matches = new ArrayList<String>();
-                while (m.find()) {
-                    matches.add(m.group(1));
+            if (commandx.contains("echo")) {
+                executable = "echo";
+                String arr[] = commandx.split(" ", 2);
+                for (int i = 0; i < arr.length; i++) {
+                    params.add(arr[i]);
                 }
 
-                for (int i = 0; i < matches.size(); i++) {
-                    if (i == 0) {
-                        executable = matches.get(i);
-                    } else {
-                        params.add(matches.get(i));
+            }else{
+                if (command.contains("[")) {
+                    Pattern p = Pattern.compile("\"(.*?)\"");
+                    Matcher m = p.matcher(command);
+
+                    List<String> matches = new ArrayList<String>();
+                    while (m.find()) {
+                        matches.add(m.group(1));
                     }
-                }
-            }else {
-                String[] parts = run.split(" ");
 
-                for (int i = 0; i < parts.length; i++) {
-                    if (i == 0) {
-                        executable = parts[i];
-
-                    } else {
-                        params.add(parts[i]);
+                    for (int i = 0; i < matches.size(); i++) {
+                        if (i == 0) {
+                            executable = matches.get(i);
+                        } else {
+                            params.add(matches.get(i));
+                        }
                     }
-                }
+                }else {
+                    String[] parts = run.split(" ");
 
+                    for (int i = 0; i < parts.length; i++) {
+                        if (i == 0) {
+                            executable = parts[i];
+
+                        } else {
+                            params.add(parts[i]);
+                        }
+                    }
+
+                }
             }
             if(executable.length()>0){
                 runs.add(new Run(dockerfile, executable, params));

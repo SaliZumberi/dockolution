@@ -4,6 +4,7 @@ import models.GithubRepository;
 import models.SQL.Diff;
 import models.SQL.Dockerfile;
 import models.SQL.Snapshot;
+import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -24,9 +25,7 @@ import tools.githubminer.GitHistoryFilter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by salizumberi-laptop on 29.12.2016.
@@ -86,6 +85,8 @@ public class App {
 
         int index = 0;
         System.out.println("6. Create Snapshots for the Dockerfile");
+        Collections.reverse(historyOfFile);
+
         for (RevCommit commit : historyOfFile) {
             Snapshot snapshot = getDockerfileFromCommit(commit, repository, dockerPath, repoFolderName);
             if (index == 0) {
@@ -121,46 +122,24 @@ public class App {
             }
         }
 
-        System.out.println("8. Map Diffs with Snapshots");
-        if (dockerfile.getDockerfileSnapshots().size() > 0) {
             for (int i = 0; i < dockerfile.getDockerfileSnapshots().size(); i++) {
-                Diff prevDiff;
-                Diff nextDiff;
-                boolean foundFlag = false;
-
-                while (!foundFlag) {
-                    if (dockerfile.getDockerfileSnapshots().size() == 1) {
-                        prevDiff = DiffProcessor.getDiff(null, dockerfile.getDockerfileSnapshots().get(0));
-                        nextDiff = null;
-                        dockerfile.getDockerfileSnapshots().get(i).setNewAndOldDiff(prevDiff,nextDiff);
-                        foundFlag = true;
-                    } else {
-                        if (i == 0 && dockerfile.getDockerfileSnapshots().size()> (i+1)) {
-                            prevDiff = DiffProcessor.getDiff(null, dockerfile.getDockerfileSnapshots().get(i));
-                            nextDiff = DiffProcessor.getDiff(dockerfile.getDockerfileSnapshots().get(i), dockerfile.getDockerfileSnapshots().get(i+1));
-                            dockerfile.getDockerfileSnapshots().get(i).setNewAndOldDiff(prevDiff,nextDiff);
-                            foundFlag = true;
-                        } else {
-                            if(i>0 && dockerfile.getDockerfileSnapshots().size()> (i+1)){
-                                prevDiff = DiffProcessor.getDiff(dockerfile.getDockerfileSnapshots().get(i-1), dockerfile.getDockerfileSnapshots().get(i));
-                                nextDiff = DiffProcessor.getDiff(dockerfile.getDockerfileSnapshots().get(i), dockerfile.getDockerfileSnapshots().get(i+1));
-                                dockerfile.getDockerfileSnapshots().get(i).setNewAndOldDiff(prevDiff,nextDiff);
-                                foundFlag = true;
-                            }else{
-                                if(i>0){
-                                    prevDiff = DiffProcessor.getDiff(dockerfile.getDockerfileSnapshots().get(i-1), dockerfile.getDockerfileSnapshots().get(i));
-                                    nextDiff = null;
-                                    dockerfile.getDockerfileSnapshots().get(i).setNewAndOldDiff(prevDiff,nextDiff);
-                                    foundFlag = true;
-                                }
-                            }
-                        }
-                    }
+                Diff prevDiff = null;
+                if (i == 0) {
+                    prevDiff = DiffProcessor.getDiff(null, dockerfile.getDockerfileSnapshots().get(0));
+                } else {
+                    prevDiff = DiffProcessor.getDiff(dockerfile.getDockerfileSnapshots().get(i - 1), dockerfile.getDockerfileSnapshots().get(i));
                 }
+                dockerfile.getDockerfileSnapshots().get(i).setOldDiff(prevDiff);
+            }
 
+        for (int i = 0; i < dockerfile.getDockerfileSnapshots().size()-1; i++) {
+            Diff nextDiff = null;
+            if (dockerfile.getDockerfileSnapshots().size() == 1) {
+            }else {
+                nextDiff = dockerfile.getDockerfileSnapshots().get(i + 1).getDiffs().get(0);
+                dockerfile.getDockerfileSnapshots().get(i).setNewDiff(nextDiff);
             }
         }
-
 
         System.out.println("## HIBERNATESERVICE: INSERT Dockerfile Object");
         HibernateService.createDockerfile(dockerfile);
